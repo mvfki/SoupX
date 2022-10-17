@@ -155,7 +155,8 @@ adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','mult
       if(verbose>0)
         close(pb)
       out = do.call(cbind,out)
-      out = as(out,'dgTMatrix')
+      #out = as(out,'dgTMatrix')
+      out = as(out, "TsparseMatrix")
       rownames(out) = rownames(sc$toc)
       colnames(out) = colnames(sc$toc)
       out = sc$toc - out
@@ -163,7 +164,8 @@ adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','mult
       if(verbose>0)
         message("Identifying and removing genes likely to be pure contamination in each cell.")
       #Start by calculating the p-value against the null of soup.
-      out = as(sc$toc,'dgTMatrix')
+      #out = as(sc$toc,'dgTMatrix')
+      out = as(sc$toc, "TsparseMatrix")
       if(verbose>1)
         message("Calculating probability of each gene being soup")
       p = ppois(out@x-1,sc$metaData$nUMIs[out@j+1]*sc$soupProfile$est[out@i+1]*sc$metaData$rho[out@j+1],lower.tail=FALSE)
@@ -198,15 +200,18 @@ adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','mult
                          x=out@x[o[w]],
                          dims=dim(out),
                          dimnames=dimnames(out),
-                         giveCsparse=FALSE)
+                         repr = "T")
+                         #giveCsparse=FALSE)
     }else if(method=='subtraction'){
       #Create the final thing efficiently without making a big matrix
-      out = as(sc$toc,'dgTMatrix')
+      #out = as(sc$toc,'dgTMatrix')
+      out = as(sc$toc, "TsparseMatrix")
       expSoupCnts = sc$metaData$nUMIs * sc$metaData$rho
       soupFrac = sc$soupProfile$est
       #Distribute counts according to the soup profile.  Could be made faster by not considering zeros, but eh.
       out = out - do.call(cbind,lapply(seq(ncol(out)),function(e) alloc(expSoupCnts[e],out[,e],soupFrac)))
-      out = as(out,'dgTMatrix')
+      #out = as(out,'dgTMatrix')
+      out = as(out, "TsparseMatrix")
       #Iteratively remove until we've removed the expected number of counts
       #How many counts should we have left when we're done?
       #tgts = sc$metaData$nUMIs - expSoupCnts
@@ -246,7 +251,8 @@ adjustCounts = function(sc,clusters=NULL,method=c('subtraction','soupOnly','mult
                          x=out@x[w],
                          dims=dim(out),
                          dimnames=dimnames(out),
-                         giveCsparse=FALSE)
+                         repr = "T")
+                         #giveCsparse=FALSE)
     }else{
       stop("Impossible!")
     }
